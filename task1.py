@@ -1,72 +1,53 @@
-# Import necessary libraries
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.impute import SimpleImputer
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+import seaborn as sns
+df_movie=pd.read_csv("/content/Movie dataset.csv",encoding=("ISO-8859-1"),sep=",",engine='python')
+df_movie.dropna(inplace=True)
+df_movie.head()
+df_movie.shape
+df_movie.describe()
+from sklearn.preprocessing import LabelEncoder
+labelencoder = LabelEncoder()
 
-# Load the dataset
-data = pd.read_csv('/content/Titanic-Dataset.csv')
+df_movie['Genre']= labelencoder.fit_transform(df_movie['Genre'])
 
-# Display the first few rows of the dataset
-print(data.head())
+df_movie.head()
+df_movie.isna().sum()
+df2=df_movie.drop(['Votes'],axis=1)
+df2.head()
+df2.describe()
+df2.isna().sum()
+df_final=df2.dropna()
+df_final.shape   
+df_final.head()
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-# Handle missing values for 'Age' and 'Embarked'
-age_imputer = SimpleImputer(strategy='median')
-data['Age'] = age_imputer.fit_transform(data[['Age']])
-data['Embarked'].fillna(data['Embarked'].mode()[0], inplace=True)
+# Set the style of seaborn plots
+sns.set(style="whitegrid")
 
-# Drop 'Cabin' due to too many missing values
-data.drop(columns=['Cabin'], inplace=True)
+# Plotting a histogram of the 'Rating' column
+plt.figure(figsize=(10, 6))
+sns.histplot(df2['Rating'], bins=20, kde=True, color='skyblue')
+plt.title('Distribution of Ratings')
+plt.xlabel('Rating')
+plt.ylabel('Frequency')
+plt.show()
 
-# Encode categorical features 'Sex' and 'Embarked'
-sex_encoder = LabelEncoder()
-data['Sex'] = sex_encoder.fit_transform(data['Sex'])
-embarked_encoder = LabelEncoder()
-data['Embarked'] = embarked_encoder.fit_transform(data['Embarked'])
+# Plotting a count plot of the 'Genre' column
+plt.figure(figsize=(10, 6))
+sns.countplot(y='Genre', data=df2, order=df2['Genre'].value_counts().index[:10], palette='viridis')
+plt.title('Top 10 Genres')
+plt.xlabel('Count')
+plt.ylabel('Genre')
+plt.show()
 
-# Define features and target variable
-features = data[['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked']]
-target = data['Survived']
-
-# Split data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(features, target, test_size=0.2, random_state=42)
-
-# Scale numerical features
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
-
-# Initialize and train Logistic Regression model
-model = LogisticRegression(random_state=42)
-model.fit(X_train, y_train)
-
-# Make predictions on the test set
-y_pred = model.predict(X_test)
-
-# Evaluate the model
-accuracy = accuracy_score(y_test, y_pred)
-precision = precision_score(y_test, y_pred)
-recall = recall_score(y_test, y_pred)
-f1 = f1_score(y_test, y_pred)
-
-print(f'Accuracy: {accuracy}')
-print(f'Precision: {precision}')
-print(f'Recall: {recall}')
-print(f'F1-score: {f1}')
-
-# Filter the dataset to include only passengers who survived
-survivors = data[data['Survived'] == 1]
-print(survivors)
-
-# Create a bar chart showing the number of survivors by gender
-survivor_counts = survivors['Sex'].value_counts()
-# Convert numeric encoding back to original labels
-survivor_counts.index = ['Female', 'Male'] if survivor_counts.index[0] == 0 else ['Male', 'Female']
-survivor_counts.plot(kind='bar', color=['blue', 'orange'])
-plt.title('Number of Survivors by Gender')
-plt.xlabel('Gender')
-plt.ylabel('Number of Survivors')
+# Plotting a bar plot of the top 10 Directors
+plt.figure(figsize=(10, 6))
+top_directors = df2['Director'].value_counts().nlargest(10)
+sns.barplot(x=top_directors.values, y=top_directors.index, palette='rocket')
+plt.title('Top 10 Directors')
+plt.xlabel('Count')
+plt.ylabel('Director')
 plt.show()
